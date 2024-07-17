@@ -1,0 +1,16 @@
+{
+  "name": "avwdad",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/uuid": "^10.0.0",
+    "discord.js": "^14.15.3",
+    "uuid": "^10.0.0"
+  }
+}
