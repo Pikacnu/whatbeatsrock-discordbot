@@ -71,8 +71,16 @@ client.on(Events.MessageCreate, async (message) => {
 		if (content.match(/\d+/)) {
 			return message.channel.send('Please provide a guess without numbers');
 		}
-		const guild = cache.find((x) => x.guildid === message.guildId);
-		if (cache.length === 0 || !guild?.games[0][0].guess_wins) {
+		let guild = cache.find((x) => x.guildid === message.guildId);
+		if (
+			!guild ||
+			guild?.games!.length === 0 ||
+			!guild?.games[0][0].guess_wins
+		) {
+			if (!guild) {
+				guild = { guildid: message.guildId||'', games: [] };
+				cache.push(guild);
+			}
 			guild?.games.unshift([
 				{ gameId: v4(), prev: 'rock', guess: '', guess_wins: false },
 			]);
