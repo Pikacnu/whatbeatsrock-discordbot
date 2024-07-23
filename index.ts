@@ -1,4 +1,5 @@
 import { v4 } from 'uuid';
+import fs from 'fs';
 
 import { Client, Colors, Events, GatewayIntentBits } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
@@ -42,14 +43,18 @@ async function guess(prev: string, guess: string, gameId: string | null) {
 	});
 }
 
-interface Game {
+interface Guess {
 	gameId: string;
 	prev: string;
 	guess: string;
 	guess_wins: boolean;
 }
+interface GuildWithGames {
+	guildid: string;
+	games: Guess[][];
+}
 
-let cache: Game[][] = [];
+let cache: GuildWithGames[] = [];
 
 client.on(Events.MessageCreate, async (message) => {
 	if (message.author.bot) return;
@@ -66,13 +71,19 @@ client.on(Events.MessageCreate, async (message) => {
 		if (content.match(/\d+/)) {
 			return message.channel.send('Please provide a guess without numbers');
 		}
-		if (cache.length === 0 || !cache[0][0].guess_wins) {
-			cache.unshift([
+		const guild = cache.find((x) => x.guildid === message.guildId);
+		if (cache.length === 0 || !guild?.games[0][0].guess_wins) {
+			guild?.games.unshift([
 				{ gameId: v4(), prev: 'rock', guess: '', guess_wins: false },
 			]);
-			const game = cache[0][0];
+			const game = guild?.games[0][0] || {
+				gameId: v4(),
+				prev: 'rock',
+				guess: '',
+				guess_wins: false,
+			};
 			const res = await guess(game.prev, content, game.gameId);
-			cache[0].unshift(res);
+			guild?.games[0].unshift(res);
 			const embed = new EmbedBuilder()
 				.setTitle(
 					`**${res.guess}** ${res.guess_wins ? 'beats' : 'does not beat'} **${
@@ -86,10 +97,10 @@ client.on(Events.MessageCreate, async (message) => {
 				embeds: [embed],
 			});
 		}
-		if (cache[0][0].guess_wins) {
-			const game = cache[0][0];
+		if (guild?.games[0][0].guess_wins) {
+			const game = guild?.games[0][0];
 			const res = await guess(game.guess, content, game.gameId);
-			cache[0].unshift(res);
+			guild?.games[0].unshift(res);
 			const embed = new EmbedBuilder()
 				.setTitle(
 					`**${res.guess}** ${res.guess_wins ? 'beats' : 'does not beat'} **${
@@ -110,3 +121,7 @@ client.login(process.env.TOKEN);
 client.on(Events.ClientReady, () => {
 	console.log('Bot is ready');
 });
+
+setInterval(() => {
+	fs.writeFileSync('./cache.json', JSON.stringify(cache));
+}, 1000 * 60 * 5);
