@@ -13,3 +13,11 @@ To run:
 ```bash
 bun run index.ts
 ```
+
+Env File:
+
+```env
+TOKEN="Discord bot token"
+CLIENT_ID="Discord bot client id"
+APIKEY='Gemini api key'
+```

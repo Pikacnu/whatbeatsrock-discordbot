@@ -177,6 +177,5 @@ dist
 .env
 node_modules
 history
-ai.ts
 cache.json
 history.json
